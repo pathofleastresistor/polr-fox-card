@@ -11,7 +11,7 @@ export class PoLRBirthdayCard extends LitElement {
     @property() _events: Array<BirthdayEvent>;
 
     static getConfigElement() {
-        // return document.createElement("polr-birthday-card-editor");
+        return document.createElement("polr-birthday-card-editor");
     }
 
     static getStubConfig() {
@@ -133,6 +133,106 @@ export class PoLRBirthdayCard extends LitElement {
         `;
     }
 }
+class PoLRBirthdayCardEditor extends LitElement {
+    @property() _config: any;
+    @property() _hass: any;
+
+    static get properties() {
+        return {
+            hass: {},
+            _config: {},
+        };
+    }
+
+    setConfig(config) {
+        this._config = config;
+    }
+
+    set hass(hass) {
+        this._hass = hass;
+    }
+
+    _valueChanged(ev) {
+        if (!this._config || !this._hass) {
+            return;
+        }
+        const _config = Object.assign({}, this._config);
+        _config.entity_id = ev.detail.value.entity_id;
+        _config.name = ev.detail.value.name;
+        _config.days = ev.detail.value.days;
+        _config.max = ev.detail.value.max;
+
+        this._config = _config;
+
+        const event = new CustomEvent("config-changed", {
+            detail: { config: _config },
+            bubbles: true,
+            composed: true,
+        });
+        this.dispatchEvent(event);
+    }
+
+    render() {
+        if (!this._hass || !this._config) {
+            return html``;
+        }
+
+        var schema = [
+            {
+                name: "entity_id",
+                selector: {
+                    entity: {
+                        filter: [
+                            {
+                                integration: "google",
+                                domain: "calendar",
+                            },
+                        ],
+                    },
+                },
+            },
+            {
+                name: "name",
+                selector: {
+                    text: {},
+                },
+            },
+            {
+                name: "days",
+                selector: {
+                    number: { min: 0, max: 365, mode: "box" },
+                },
+            },
+            {
+                name: "max",
+                selector: {
+                    number: { min: 0, max: 100, mode: "box" },
+                },
+            },
+        ];
+
+        return html`
+            <ha-form
+                .hass=${this._hass}
+                .data=${this._config}
+                .schema=${schema}
+                .computeLabel=${this._computeLabel}
+                @value-changed=${this._valueChanged}></ha-form>
+        `;
+    }
+
+    _computeLabel(schema) {
+        var labelMap = {
+            entity_id: "Entity",
+            name: "Name for card",
+            days: "Number of days to look ahead",
+            max: "Maximum events to show",
+        };
+        return labelMap[schema.name];
+    }
+}
+
+customElements.define("polr-birthday-card-editor", PoLRBirthdayCardEditor);
 
 customElements.define("polr-birthday-card", PoLRBirthdayCard);
 (window as any).customCards = (window as any).customCards || [];

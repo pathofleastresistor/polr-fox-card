@@ -73,6 +73,12 @@ export class PoLRATVRemoteCard extends LitElement {
             entity_id: "remote.atvremote",
             apps: ["disneyplus"],
             remote: "touch",
+            showRemote: true,
+            showBasic: true,
+            showApps: true,
+            showVolume: true,
+            showMedia: false,
+            media_controls: ["rewind", "play_pause", "fast_forward"],
         };
     }
 
