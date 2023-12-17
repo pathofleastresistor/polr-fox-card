@@ -3423,10 +3423,11 @@ PoLRTouchpad.styles = i$3 `
             max-height: 600px;
             width: 100%;
             min-width: 250px;
-            background: #333;
             border-radius: 12px;
             cursor: pointer;
             overflow: hidden;
+            background-color: rgb(185, 185, 185);
+            opacity: 0.2;
         }
 
         #circle {
