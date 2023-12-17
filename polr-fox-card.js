@@ -3508,6 +3508,7 @@ class PoLRATVRemoteCard extends s {
             showApps: true,
             showVolume: true,
             showMedia: false,
+            showURLSearch: false,
             media_controls: ["rewind", "play_pause", "fast_forward"],
         };
     }
@@ -3537,6 +3538,9 @@ class PoLRATVRemoteCard extends s {
             : "";
         !this._config.hasOwnProperty("showMedia")
             ? (this._config.showMedia = false)
+            : "";
+        !this._config.hasOwnProperty("showURLSearch")
+            ? (this._config.showURLSearch = false)
             : "";
     }
     set hass(hass) {
@@ -3570,6 +3574,9 @@ class PoLRATVRemoteCard extends s {
             : ""}
                     ${state === "on" && this._config.showMedia
             ? this._renderMedia()
+            : ""}
+                    ${state === "on" && this._config.showURLSearch
+            ? this._renderTextCommand()
             : ""}
                 </div>
             </ha-card>
@@ -3771,6 +3778,24 @@ class PoLRATVRemoteCard extends s {
         }
         return x `<div class="grid">${buttons}</div>`;
     }
+    _renderTextCommand() {
+        return x `
+            <div class="text-grid">
+                <ha-textfield
+                    type="text"
+                    id="url_command"
+                    label="URL"></ha-textfield>
+                <polr-button @click=${this._sendCommand}
+                    ><ha-icon icon="mdi:send"></ha-icon
+                ></polr-button>
+            </div>
+        `;
+    }
+    _sendCommand() {
+        const url = this.shadowRoot.querySelector("#url_command")
+            .value;
+        this._turn_on(url);
+    }
     _turn_on(action) {
         this._hass.callService("remote", "turn_on", {
             entity_id: this._config.entity_id,
@@ -3847,6 +3872,16 @@ PoLRATVRemoteCard.styles = i$3 `
             width: 100%;
             margin: auto;
         }
+        .text-grid {
+            display: grid;
+            grid-template-columns: 1fr 50px;
+            gap: 12px;
+            width: 100%;
+            margin: auto;
+        }
+        .text-grid > polr-button {
+            height: 100%;
+        }
     `;
 __decorate([
     n$1()
@@ -3881,6 +3916,7 @@ class PoLRATVRemoteCardEditor extends s {
         _config.showApps = ev.detail.value.showApps;
         _config.showVolume = ev.detail.value.showVolume;
         _config.showMedia = ev.detail.value.showMedia;
+        _config.showURLSearch = ev.detail.value.showURLSearch;
         this._config = _config;
         const event = new CustomEvent("config-changed", {
             detail: { config: _config },
@@ -3998,6 +4034,12 @@ class PoLRATVRemoteCardEditor extends s {
                     },
                 ]
                 : []),
+            {
+                name: "showURLSearch",
+                selector: {
+                    boolean: {},
+                },
+            },
         ];
         return x `
             <ha-form
@@ -4019,6 +4061,7 @@ class PoLRATVRemoteCardEditor extends s {
             showVolume: "Show Volume",
             showMedia: "Show Playback Controls",
             media_controls: "Playback Controls",
+            showURLSearch: "URL Search Control",
         };
         return labelMap[schema.name];
     }

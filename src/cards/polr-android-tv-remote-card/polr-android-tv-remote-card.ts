@@ -78,6 +78,7 @@ export class PoLRATVRemoteCard extends LitElement {
             showApps: true,
             showVolume: true,
             showMedia: false,
+            showURLSearch: false,
             media_controls: ["rewind", "play_pause", "fast_forward"],
         };
     }
@@ -112,6 +113,9 @@ export class PoLRATVRemoteCard extends LitElement {
             : "";
         !this._config.hasOwnProperty("showMedia")
             ? (this._config.showMedia = false)
+            : "";
+        !this._config.hasOwnProperty("showURLSearch")
+            ? (this._config.showURLSearch = false)
             : "";
     }
 
@@ -149,6 +153,9 @@ export class PoLRATVRemoteCard extends LitElement {
                         : ""}
                     ${state === "on" && this._config.showMedia
                         ? this._renderMedia()
+                        : ""}
+                    ${state === "on" && this._config.showURLSearch
+                        ? this._renderTextCommand()
                         : ""}
                 </div>
             </ha-card>
@@ -400,6 +407,26 @@ export class PoLRATVRemoteCard extends LitElement {
         return html`<div class="grid">${buttons}</div>`;
     }
 
+    private _renderTextCommand() {
+        return html`
+            <div class="text-grid">
+                <ha-textfield
+                    type="text"
+                    id="url_command"
+                    label="URL"></ha-textfield>
+                <polr-button @click=${this._sendCommand}
+                    ><ha-icon icon="mdi:send"></ha-icon
+                ></polr-button>
+            </div>
+        `;
+    }
+
+    private _sendCommand() {
+        const url = (this.shadowRoot.querySelector("#url_command") as any)
+            .value;
+        this._turn_on(url);
+    }
+
     private _turn_on(action: string) {
         this._hass.callService("remote", "turn_on", {
             entity_id: this._config.entity_id,
@@ -481,6 +508,16 @@ export class PoLRATVRemoteCard extends LitElement {
             width: 100%;
             margin: auto;
         }
+        .text-grid {
+            display: grid;
+            grid-template-columns: 1fr 50px;
+            gap: 12px;
+            width: 100%;
+            margin: auto;
+        }
+        .text-grid > polr-button {
+            height: 100%;
+        }
     `;
 }
 
@@ -518,6 +555,7 @@ class PoLRATVRemoteCardEditor extends LitElement {
         _config.showApps = ev.detail.value.showApps;
         _config.showVolume = ev.detail.value.showVolume;
         _config.showMedia = ev.detail.value.showMedia;
+        _config.showURLSearch = ev.detail.value.showURLSearch;
 
         this._config = _config;
 
@@ -639,6 +677,12 @@ class PoLRATVRemoteCardEditor extends LitElement {
                       },
                   ]
                 : []),
+            {
+                name: "showURLSearch",
+                selector: {
+                    boolean: {},
+                },
+            },
         ];
 
         return html`
@@ -662,6 +706,7 @@ class PoLRATVRemoteCardEditor extends LitElement {
             showVolume: "Show Volume",
             showMedia: "Show Playback Controls",
             media_controls: "Playback Controls",
+            showURLSearch: "URL Search Control",
         };
         return labelMap[schema.name];
     }
