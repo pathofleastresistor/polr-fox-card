@@ -3494,6 +3494,8 @@ const buttonCommands = {
     play_pause: { config: "play_pause", command: "MEDIA_PLAY_PAUSE" },
     fast_forward: { config: "fast_forward", command: "MEDIA_FAST_FORWARD" },
     rewind: { config: "rewind", command: "MEDIA_REWIND" },
+    next: { config: "next", command: "MEDIA_NEXT" },
+    previous: { config: "previous", command: "MEDIA_PREVIOUS" },
 };
 class PoLRATVRemoteCard extends s {
     static getConfigElement() {
@@ -3775,6 +3777,22 @@ class PoLRATVRemoteCard extends s {
                             ></polr-button>
                         `);
                     break;
+                case "next":
+                    buttons.push(x `
+                            <polr-button
+                                @click=${() => this._press(buttonCommands.next.config)}
+                                ><ha-icon icon="mdi:skip-next"></ha-icon
+                            ></polr-button>
+                        `);
+                    break;
+                case "previous":
+                    buttons.push(x `
+                            <polr-button
+                                @click=${() => this._press(buttonCommands.previous.config)}
+                                ><ha-icon icon="mdi:skip-previous"></ha-icon
+                            ></polr-button>
+                        `);
+                    break;
             }
         }
         return x `<div class="grid">${buttons}</div>`;
@@ -4024,6 +4042,8 @@ class PoLRATVRemoteCardEditor extends s {
                                         value: "play_pause",
                                     },
                                     { label: "Stop", value: "stop" },
+                                    { label: "Next", value: "next" },
+                                    { label: "Previous", value: "previous" },
                                     { label: "Rewind", value: "rewind" },
                                     {
                                         label: "Fast Forward",
