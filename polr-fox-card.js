@@ -3493,6 +3493,8 @@ const buttonCommands = {
     play_pause: { config: "play_pause", command: "MEDIA_PLAY_PAUSE" },
     fast_forward: { config: "fast_forward", command: "MEDIA_FAST_FORWARD" },
     rewind: { config: "rewind", command: "MEDIA_REWIND" },
+    next: { config: "next", command: "MEDIA_NEXT" },
+    previous: { config: "previous", command: "MEDIA_PREVIOUS" },
 };
 class PoLRATVRemoteCard extends s {
     static getConfigElement() {
@@ -3508,6 +3510,7 @@ class PoLRATVRemoteCard extends s {
             showApps: true,
             showVolume: true,
             showMedia: false,
+            showURLSearch: false,
             media_controls: ["rewind", "play_pause", "fast_forward"],
         };
     }
@@ -3537,6 +3540,9 @@ class PoLRATVRemoteCard extends s {
             : "";
         !this._config.hasOwnProperty("showMedia")
             ? (this._config.showMedia = false)
+            : "";
+        !this._config.hasOwnProperty("showURLSearch")
+            ? (this._config.showURLSearch = false)
             : "";
     }
     set hass(hass) {
@@ -3570,6 +3576,9 @@ class PoLRATVRemoteCard extends s {
             : ""}
                     ${state === "on" && this._config.showMedia
             ? this._renderMedia()
+            : ""}
+                    ${state === "on" && this._config.showURLSearch
+            ? this._renderTextCommand()
             : ""}
                 </div>
             </ha-card>
@@ -3767,9 +3776,43 @@ class PoLRATVRemoteCard extends s {
                             ></polr-button>
                         `);
                     break;
+                case "next":
+                    buttons.push(x `
+                            <polr-button
+                                @click=${() => this._press(buttonCommands.next.config)}
+                                ><ha-icon icon="mdi:skip-next"></ha-icon
+                            ></polr-button>
+                        `);
+                    break;
+                case "previous":
+                    buttons.push(x `
+                            <polr-button
+                                @click=${() => this._press(buttonCommands.previous.config)}
+                                ><ha-icon icon="mdi:skip-previous"></ha-icon
+                            ></polr-button>
+                        `);
+                    break;
             }
         }
         return x `<div class="grid">${buttons}</div>`;
+    }
+    _renderTextCommand() {
+        return x `
+            <div class="text-grid">
+                <ha-textfield
+                    type="text"
+                    id="url_command"
+                    label="URL"></ha-textfield>
+                <polr-button @click=${this._sendCommand}
+                    ><ha-icon icon="mdi:send"></ha-icon
+                ></polr-button>
+            </div>
+        `;
+    }
+    _sendCommand() {
+        const url = this.shadowRoot.querySelector("#url_command")
+            .value;
+        this._turn_on(url);
     }
     _turn_on(action) {
         this._hass.callService("remote", "turn_on", {
@@ -3847,6 +3890,16 @@ PoLRATVRemoteCard.styles = i$3 `
             width: 100%;
             margin: auto;
         }
+        .text-grid {
+            display: grid;
+            grid-template-columns: 1fr 50px;
+            gap: 12px;
+            width: 100%;
+            margin: auto;
+        }
+        .text-grid > polr-button {
+            height: 100%;
+        }
     `;
 __decorate([
     n$1()
@@ -3881,6 +3934,7 @@ class PoLRATVRemoteCardEditor extends s {
         _config.showApps = ev.detail.value.showApps;
         _config.showVolume = ev.detail.value.showVolume;
         _config.showMedia = ev.detail.value.showMedia;
+        _config.showURLSearch = ev.detail.value.showURLSearch;
         this._config = _config;
         const event = new CustomEvent("config-changed", {
             detail: { config: _config },
@@ -3987,6 +4041,8 @@ class PoLRATVRemoteCardEditor extends s {
                                         value: "play_pause",
                                     },
                                     { label: "Stop", value: "stop" },
+                                    { label: "Next", value: "next" },
+                                    { label: "Previous", value: "previous" },
                                     { label: "Rewind", value: "rewind" },
                                     {
                                         label: "Fast Forward",
@@ -3998,6 +4054,12 @@ class PoLRATVRemoteCardEditor extends s {
                     },
                 ]
                 : []),
+            {
+                name: "showURLSearch",
+                selector: {
+                    boolean: {},
+                },
+            },
         ];
         return x `
             <ha-form
@@ -4019,6 +4081,7 @@ class PoLRATVRemoteCardEditor extends s {
             showVolume: "Show Volume",
             showMedia: "Show Playback Controls",
             media_controls: "Playback Controls",
+            showURLSearch: "URL Search Control",
         };
         return labelMap[schema.name];
     }
